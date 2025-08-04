@@ -1,4 +1,16 @@
-node_modules/
+# Ignorar la carpeta de dependencias
+/node_modules
+
+# Ignorar archivos de entorno
 .env
-dist/
-*.log
+
+# Ignorar archivos de logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignorar la carpeta de archivos subidos por los usuarios
+/uploads
+
+# Ignorar el archivo de credenciales de Firebase ¡MUY IMPORTANTE!
+firebase-service-account-key.json

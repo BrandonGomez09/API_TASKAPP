@@ -10,4 +10,4 @@ router.post('/', adminController.create);
 // Usará el método PUT. Ejemplo: PUT /user/12/fcm-token
 router.put('/:id/fcm-token', adminController.updateFcmToken);
 
-module.exports = router;
+module.exports = router;    

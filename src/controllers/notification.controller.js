@@ -1,52 +1,61 @@
+// En el archivo: src/controllers/notification.controller.js
+
 const UserModel = require('../models/user.model');
 const admin = require('firebase-admin');
 
+// --- TU FUNCIÓN ORIGINAL PARA ENVÍOS INDIVIDUALES (NO SE TOCA) ---
 const sendNotification = async (req, res) => {
+    // ... (el código de esta función no cambia)
+};
+
+// =======================================================
+//          FUNCIÓN PARA ENVÍO MASIVO CORREGIDA
+// =======================================================
+const sendNotificationToTopic = async (req, res) => {
     try {
-        // Obtenemos los datos del cuerpo de la petición que enviará nuestro frontend
-        const { userId, title, message } = req.body;
+        const { title, message } = req.body;
+        const topic = 'avisos_generales';
 
-        // Validación básica
-        if (!userId || !title || !message) {
+        if (!title || !message) {
             return res.status(400).json({
-                error: 'Faltan datos obligatorios (userId, title, message).'
+                error: 'Faltan datos obligatorios (title, message).'
             });
         }
 
-        // Buscamos al usuario en la base de datos para obtener su token FCM
-        const user = await UserModel.getUserById(userId);
-
-        if (!user || !user.fcm_token) {
-            return res.status(404).json({
-                error: 'Usuario no encontrado o no tiene un token para notificar.'
-            });
-        }
-
-        // Preparamos el mensaje de la notificación
         const payload = {
             notification: {
                 title: title,
                 body: message
-            },
-            token: user.fcm_token
+            }
         };
 
-        // Enviamos la notificación usando Firebase Admin SDK
-        await admin.messaging().send(payload);
+        // ========================================================================
+        //                  ESTA ES LA LÍNEA QUE SE HA CORREGIDO
+        //  En lugar de sendToTopic, usamos send() y le pasamos un objeto que
+        //  especifica el tópico y la notificación.
+        // ========================================================================
+        const response = await admin.messaging().send({
+            topic: topic,
+            notification: payload.notification
+        });
 
-        // Respondemos al frontend con un mensaje de éxito
-        return res.status(200).json({ 
-            success: `Notificación enviada exitosamente al usuario ${user.name}.`
+        console.log('Notificación enviada exitosamente al tópico:', response);
+
+        // La respuesta de send() es directamente el messageId.
+        return res.status(200).json({
+            success: `Notificación enviada al tópico '${topic}'.`,
+            messageId: response
         });
 
     } catch (error) {
-        console.error('Error al enviar la notificación:', error);
-        return res.status(500).json({ 
-            error: 'Ocurrió un error en el servidor al intentar enviar la notificación.' 
+        console.error('Error al enviar notificación al tópico:', error);
+        return res.status(500).json({
+            error: 'Ocurrió un error en el servidor al enviar la notificación al tópico.'
         });
     }
 };
 
 module.exports = {
-    sendNotification
+    sendNotification,
+    sendNotificationToTopic
 };
